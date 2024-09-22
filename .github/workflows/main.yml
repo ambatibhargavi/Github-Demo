@@ -1,45 +1,42 @@
-name: CI/CD Pipeline to Docker Hub
+name: Publish Docker Image
 
-# Trigger the workflow on pushes to the main branch and pull requests.
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    branches: ['main']
 
-# Define the job to build and push the Docker image
 jobs:
-  build:
+  push_to_registry:
+    name: Push Docker Image to Docker Hub
     runs-on: ubuntu-latest
-
     steps:
-      # Checkout the code from the repository
-      - name: Checkout Code
+      # Step 1: Checkout the repository
+      - name: Check out the repository
         uses: actions/checkout@v3
 
-      # Set up Docker environment
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      # Log in to Docker Hub using credentials from GitHub Secrets
+      # Step 2: Log in to Docker Hub using credentials from GitHub Secrets
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build the Docker image from the Dockerfile
-      - name: Build Docker Image
-        run: |
-          docker buildx build --platform linux/amd64 -t ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} .      
-      # Push the Docker image to Docker Hub
-      - name: Push Docker Image
-        run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
+      # Step 3: Extract metadata for Docker (tags, labels)
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/myapp
 
-      # Optional: Tag the Docker image with 'latest' and push the 'latest' tag
+      # Step 4: Build and push the Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      # Optional Step 5: Tag the Docker image as 'latest' and push
       - name: Tag Docker Image as Latest
         run: |
           docker tag ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/myapp:latest
