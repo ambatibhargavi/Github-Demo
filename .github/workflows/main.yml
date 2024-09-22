@@ -1,4 +1,4 @@
-name: Publish Docker image
+name: Publish Docker Image
 
 on:
   push:
@@ -6,28 +6,32 @@ on:
 
 jobs:
   push_to_registry:
-    name: Push Docker image to Docker Hub
+    name: Push Docker Image to Docker Hub
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Checkout the repository
       - name: Check out the repo
         uses: actions/checkout@v3
-      
+
+      # Step 2: Log in to Docker Hub using credentials from GitHub Secrets
       - name: Log in to Docker Hub
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        uses: docker/login-action@v2  # v2 is the current stable version
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       
+      # Step 3: Extract metadata (tags, labels) for Docker
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        uses: docker/metadata-action@v4  # v4 is the current stable version
         with:
-          images: bharu2003/myapp
+          images: bharu2003/myapp  # Replace with your Docker username and repository name
       
+      # Step 4: Build and push Docker image
       - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        uses: docker/build-push-action@v4  # v4 is the current stable version
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}  # Uses dynamically generated tags
+          labels: ${{ steps.meta.outputs.labels }}  # Uses dynamically generated labels
