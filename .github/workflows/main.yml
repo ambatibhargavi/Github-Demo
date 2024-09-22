@@ -25,7 +25,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4  # v4 is the current stable version
         with:
-          images: bharu2003/myapp  # Replace with your Docker username and repository name
+          images: bharu2003/helloapp  # Replace with your Docker username and repository name
       
       # Step 4: Build and push Docker image
       - name: Build and push Docker image
